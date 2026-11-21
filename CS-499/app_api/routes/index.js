@@ -7,6 +7,14 @@ const authController = require('../controllers/authentication.js');
 
 const jwt = require('jsonwebtoken'); // Enable JSON Web Tokens
 
+const createRateLimiter = require('../middleware/rateLimiter');
+
+const authLimiter = createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    maxRequests: 5
+});
+
+
 // Method to authenticate our JWT
 function authenticateJWT(req, res, next) {
     const authHeader = req.headers['authorization'];
@@ -35,8 +43,13 @@ function authenticateJWT(req, res, next) {
 
 // console.log(process.env.JWT_SECRET);
 
-router.route("/register").post(authController.register);
-router.route("/login").post(authController.login);
+router
+    .route("/register")
+    .post(authLimiter, authController.register);
+
+router
+    .route("/login")
+    .post(authLimiter, authController.login);
 
 // define route for login endpoint
 router
